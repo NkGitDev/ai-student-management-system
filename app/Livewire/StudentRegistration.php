@@ -158,24 +158,23 @@ class StudentRegistration extends Component
     
     public function fetchStates()
     {
-        //dd('fetchStates function is working');
-
-        // JSON file ka path
         $jsonPath = public_path('data/countries+states+cities.json');
 
-        // File se content read karo
-        $jsonContent = file_get_contents($jsonPath);
+        // File check to prevent Fatal Server Error on Linux
+        if (!file_exists($jsonPath)) {
+            \Log::warning('JSON file missing at: ' . $jsonPath);
+            $this->states = [];
+            return;
+        }
 
-        // JSON decode karo
-        $data = json_decode($jsonContent, true);
+        $jsonContent = @file_get_contents($jsonPath);
+        $data = json_decode($jsonContent, true) ?? [];
 
         // India ke data ko dhundhna
         $india = collect($data)->firstWhere('name', 'India'); 
 
         if ($india && isset($india['states'])) {
             $this->states = $india['states'];
-            // Optional: debug ke liye
-            // dd($this->states);
         } else {
             $this->states = [];
         }
@@ -183,7 +182,6 @@ class StudentRegistration extends Component
 
     public function fetchCities()
     {
-        //dd('fetchCity Function is working');
         try {
             if (!$this->selectedState) {
                 $this->cities = [];
@@ -191,12 +189,15 @@ class StudentRegistration extends Component
             }
 
             $jsonPath = public_path('data/countries+states+cities.json');
-            $jsonContent = file_get_contents($jsonPath);
-            $data = json_decode($jsonContent, true);
-            //dd('fetchCity data : ', $data);
 
-             \Log::info('Data loaded: ', $data);
-            // India ke data ko dhundhna
+            if (!file_exists($jsonPath)) {
+                $this->cities = [];
+                return;
+            }
+
+            $jsonContent = @file_get_contents($jsonPath);
+            $data = json_decode($jsonContent, true) ?? [];
+
             $india = collect($data)->firstWhere('name', 'India');
 
             if ($india && isset($india['states'])) {
@@ -204,8 +205,6 @@ class StudentRegistration extends Component
                 
                 if ($state && isset($state['cities'])) {
                     $this->cities = $state['cities'];
-                    //dd($this->cities);
-                    \Log::info('Cities: ', $this->cities);
                 } else {
                     $this->cities = [];
                 }
@@ -213,11 +212,8 @@ class StudentRegistration extends Component
                 $this->cities = [];
             }
         } catch (\Exception $e) {
-            // Exception ko log karen
             \Log::error('Fetch Cities Error: ' . $e->getMessage());
             $this->cities = [];
-            // Optional: error message show karen
-            session()->flash('error', 'Error fetching cities.');
         }
     }
     
