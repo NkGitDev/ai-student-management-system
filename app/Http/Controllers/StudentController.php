@@ -51,14 +51,8 @@ class StudentController extends Controller
     // Function to load add student view
     public function addStudent(Request $request)
     {
-        $course = $request->query('course', '');
-
-        try {
-            return view('student.add', compact('course'));
-        } catch (\Throwable $e) {
-            // Agar View render hone me koi bhi issue hoga toh exact error screen par dikhega
-            return response("<b>View Rendering Error:</b> " . $e->getMessage() . "<br><br><b>File:</b> " . $e->getFile() . " on line " . $e->getLine(), 500);
-        }
+        // View ko abhi render hi mat hone do, direct text return karo
+    return response('CONTROLLER IS WORKING FINE!', 200);
     }
     
 
