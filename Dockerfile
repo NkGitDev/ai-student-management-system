@@ -1,6 +1,6 @@
 FROM php:8.2-fpm
 
-# Install system dependencies
+# Install system dependencies including Node.js & NPM
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -9,7 +9,9 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     zip \
     unzip \
-    nginx
+    nginx \
+    nodejs \
+    npm
 
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -32,8 +34,9 @@ COPY nginx.conf /etc/nginx/sites-available/default
 # Install composer dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Create missing build directory and blank manifest file for Vite
-RUN mkdir -p /var/www/public/build && echo '{}' > /var/www/public/build/manifest.json
+# Install NPM dependencies & Build Vite assets (Fixes missing Vite manifest error)
+RUN npm install
+RUN npm run build
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
