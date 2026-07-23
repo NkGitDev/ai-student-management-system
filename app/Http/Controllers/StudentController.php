@@ -53,7 +53,10 @@ class StudentController extends Controller
     {
         $course = $request->query('course', '');
 
-        return view('student.add', compact('course'));
+        //return view('student.add', compact('course'));
+        
+        // Pehle yeh test karte hain ki kya controller bina view ke respond karta hai
+        return "Controller is working fine!";
     }
     
 
