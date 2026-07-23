@@ -44,4 +44,4 @@ RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 EXPOSE 80
 
 # Clean old cache on boot, run migrations & start server
-CMD php artisan config:clear && php artisan cache:clear && php artisan view:clear && php artisan migrate --force && service nginx start && php-fpm
+CMD php artisan config:clear && php artisan cache:clear && php artisan view:clear && php artisan migrate --force && service nginx start && php-fpm -D && tail -f /var/www/storage/logs/laravel.log
