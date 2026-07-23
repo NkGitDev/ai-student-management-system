@@ -51,8 +51,9 @@ class StudentController extends Controller
     // Function to load add student view
     public function addStudent(Request $request)
     {
-        // View ko abhi render hi mat hone do, direct text return karo
-    return response('CONTROLLER IS WORKING FINE!', 200);
+        $course = $request->query('course', '');
+
+        return view('student.add', compact('course'));
     }
     
 
