@@ -53,10 +53,12 @@ class StudentController extends Controller
     {
         $course = $request->query('course', '');
 
-        //return view('student.add', compact('course'));
-        
-        // Pehle yeh test karte hain ki kya controller bina view ke respond karta hai
-        return "Controller is working fine!";
+        try {
+            return view('student.add', compact('course'));
+        } catch (\Throwable $e) {
+            // Agar View render hone me koi bhi issue hoga toh exact error screen par dikhega
+            return response("<b>View Rendering Error:</b> " . $e->getMessage() . "<br><br><b>File:</b> " . $e->getFile() . " on line " . $e->getLine(), 500);
+        }
     }
     
 
