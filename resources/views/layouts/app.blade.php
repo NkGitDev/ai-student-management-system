@@ -2,50 +2,47 @@
 <html lang="en">
 
 <head>
-
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <title>{{ config('app.name', 'Laravel') }}</title>
 
     <meta content="A fully featured admin theme which can be used to build CRM, CMS, etc." name="description" />
     <meta content="Coderthemes" name="author" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 
-    <!-- App favicon -->
+    <!-- Logo -->
+    <link rel="icon" href="{{ asset('assets/images/Logo/FSD_Logo.png') }}" type="image/x-icon">
+
+    <!-- Theme Custom CSS Files -->
     <link href="{{ asset('assets/css2/bootstrap-creative.min.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('assets/css2/app-creative.min.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('assets/css2/icons.min.css') }}" rel="stylesheet" type="text/css" />
-    <!-- Logo -->
-    <link rel="icon" href="{{ asset('assets/images/Logo/FSD_Logo.png') }}" type="image/x-icon">
-    
 
-
-
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <!-- <title>{{ config('app.name', 'Laravel') }}</title> -->
-    <!-- Bootstrap 5 CSS -->
+    <!-- Bootstrap 5 CSS (Theme ke CSS ke baad overload se bachne ke liye) -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <!-- Bootstrap Icons -->
+
+    <!-- Icons: Bootstrap Icons & FontAwesome (Password Eye Icon & Carousel Fixes) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" />
-    <!-- Feather Icons -->
-    <!-- <script src="https://unpkg.com/feather-icons"></script> -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 
-    <!-- Mixed Content (HTTP to HTTPS) Issue Fix -->
-    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
-
+    <!-- Mixed Content (HTTP to HTTPS) Fix: Only Active in Production (Local environment disturb nahi hoga) -->
+    @if(app()->environment('production'))
+        <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+    @endif
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    
     @livewireStyles
 
     <!-- Theme set before page render to avoid flicker -->
     <script>
         const savedTheme = localStorage.getItem('theme') || 'light';
         document.documentElement.setAttribute('data-bs-theme', savedTheme);
-        document.body.className = savedTheme + '-theme';
-
+        if (document.body) {
+            document.body.className = savedTheme + '-theme';
+        }
     </script>
-
-    
 </head>
 <!-- <body class="d-flex flex-column min-vh-100"> -->
 

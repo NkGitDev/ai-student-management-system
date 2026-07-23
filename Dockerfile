@@ -43,5 +43,5 @@ RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 
 EXPOSE 80
 
-# Run migrations, clear config cache & Start Nginx + PHP-FPM
-CMD php artisan migrate --force && php artisan config:clear && php artisan config:cache && service nginx start && php-fpm
+# Clean old cache on boot, run migrations & start server
+CMD php artisan config:clear && php artisan cache:clear && php artisan view:clear && php artisan migrate --force && service nginx start && php-fpm
