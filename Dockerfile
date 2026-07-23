@@ -32,10 +32,13 @@ COPY nginx.conf /etc/nginx/sites-available/default
 # Install composer dependencies
 RUN composer install --no-dev --optimize-autoloader
 
+# Create missing build directory and blank manifest file for Vite
+RUN mkdir -p /var/www/public/build && echo '{}' > /var/www/public/build/manifest.json
+
 # Set permissions
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 
 EXPOSE 80
 
-# Run migrations, clear cache & Start Nginx + PHP-FPM
-CMD php artisan migrate --force && php artisan config:cache && php artisan route:cache && php artisan view:cache && service nginx start && php-fpm
+# Run migrations, clear config cache & Start Nginx + PHP-FPM
+CMD php artisan migrate --force && php artisan config:clear && php artisan config:cache && service nginx start && php-fpm
