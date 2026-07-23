@@ -1,0 +1,843 @@
+{{-- resources/views/chat.blade.php --}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Design Chat UI</title>
+<!-- Import Inter font -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* Reset */
+  * {
+    box-sizing: border-box;
+  }
+  body, html {
+    margin: 0; padding: 0; height: 100%;
+    font-family: 'Inter', sans-serif;
+    background-color: #F2EEFD;
+    color: #222;
+  }
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+  /* Grid Layout for full app */
+  .app {
+    height: 100vh;
+    display: grid;
+    grid-template-columns: 80px 280px 1fr 320px;
+    background-color: #F2EEFD;
+  }
+  /* Left Sidebar */
+  .sidebar {
+    background-color: #241F2D;
+    border-top-right-radius: 24px;
+    border-bottom-right-radius: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 0;
+    gap: 28px;
+  }
+  .sidebar svg.logo {
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+  }
+  .sidebar button {
+    background-color: #36333F;
+    border-radius: 16px;
+    width: 56px;
+    height: 56px;
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 8px 10px 0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: none;
+  }
+  .sidebar button.active,
+  .sidebar button:hover:not(:disabled) {
+    background-color: #6F52ED;
+  }
+  .sidebar button:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+  .sidebar .icon {
+    font-size: 22px;
+    margin-bottom: 8px;
+    user-select: none;
+  }
+  .sidebar .badge {
+    font-size: 10px;
+    font-weight: 700;
+    background-color: #F25C2A;
+    color: white;
+    width: 18px;
+    height: 18px;
+    line-height: 18px;
+    border-radius: 9999px;
+    text-align: center;
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    user-select: none;
+  }
+  /* Chat List */
+  .chat-list {
+    background-color: white;
+    border-top-left-radius: 24px;
+    border-bottom-left-radius: 24px;
+    border-top-right-radius: 24px;
+    padding: 28px 24px;
+    display: flex;
+    flex-direction: column;
+  }
+  .chat-list .search-container {
+    position: relative;
+    margin-bottom: 28px;
+  }
+  .chat-list input[type="search"] {
+    width: 100%;
+    padding: 14px 44px 14px 20px;
+    font-size: 14px;
+    border-radius: 20px;
+    border: none;
+    background: #F8F7FB;
+    color: #222;
+    outline-offset: -2px;
+  }
+  .chat-list .search-icon {
+    position: absolute;
+    right: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    color: #aaa;
+    user-select: none;
+  }
+  /* Chat items */
+  .chat-list .chat-item {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    padding: 12px 14px;
+    border-radius: 16px;
+    cursor: pointer;
+    margin-bottom: 12px;
+    transition: background 0.2s;
+  }
+  .chat-list .chat-item.active,
+  .chat-list .chat-item:hover {
+    background-color: #ECE6FF;
+  }
+  .chat-list .chat-avatar {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background-color: #757575;
+    color: white;
+    font-weight: 700;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    user-select: none;
+  }
+  .chat-list .chat-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .chat-list .chat-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .chat-list .chat-info .name {
+    font-weight: 700;
+    font-size: 15px;
+    color: #111;
+    line-height: 1.2;
+  }
+  .chat-list .chat-info .message {
+    font-size: 12px;
+    color: #888;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .chat-list .chat-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-end;
+  }
+  .chat-list .chat-time {
+    font-size: 11px;
+    color: #aaa;
+    white-space: nowrap;
+  }
+  .chat-list .badge-unread {
+    background-color: #F25C2A;
+    color: white;
+    font-weight: 600;
+    font-size: 11px;
+    border-radius: 9999px;
+    padding: 0 7px;
+    min-width: 20px;
+    height: 20px;
+    line-height: 20px;
+    text-align: center;
+  }
+  .chat-list .pin-icon {
+    font-size: 14px;
+    color: #aaa;
+    user-select: none;
+  }
+  /* Chat Window */
+  .chat-window {
+    background-color: white;
+    border-radius: 24px;
+    padding: 28px 32px;
+    display: flex;
+    flex-direction: column;
+  }
+  .chat-window .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1.5px solid #EAE6FA;
+    padding-bottom: 12px;
+    margin-bottom: 24px;
+  }
+  .chat-window .header .title {
+    font-weight: 700;
+    font-size: 20px;
+    color: #111;
+    line-height: 1.2;
+  }
+  .chat-window .header .sub-title {
+    font-size: 13px;
+    color: #999;
+  }
+  .chat-window .header .actions {
+    display: flex;
+    gap: 24px;
+    font-size: 20px;
+    color: #6D6C7B;
+    cursor: pointer;
+    user-select: none;
+  }
+  /* Messages list */
+  .chat-window .messages {
+    flex-grow: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding-right: 8px; /* For scrollbar */
+  }
+  .chat-window .message {
+    max-width: 70%;
+    display: flex;
+  }
+  .chat-window .message.mine {
+    flex-direction: row-reverse;
+  }
+  .chat-window .avatar {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #6F52ED;
+    font-weight: 700;
+    font-size: 16px;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    margin: 0 16px;
+  }
+  .chat-window .message-content {
+    border-radius: 20px;
+    padding: 16px 20px;
+    position: relative;
+    font-size: 14px;
+    line-height: 1.4;
+    user-select: text;
+  }
+  .chat-window .message.mine .message-content {
+    background-color: #6F52ED;
+    color: white;
+    border-bottom-right-radius: 4px;
+    border-bottom-left-radius: 20px;
+  }
+  .chat-window .message:not(.mine) .message-content {
+    background-color: #F2F0F6;
+    color: #222;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 20px;
+  }
+  .chat-window .message .meta {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #999;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .chat-window .message .meta .icon {
+    user-select: none;
+  }
+  .chat-window .message .meta .time {
+    margin-left: auto;
+  }
+  .chat-window .message .reactions span {
+    margin-left: 8px;
+    background-color: #FFE6E6;
+    font-size: 13px;
+    padding: 2px 8px;
+    border-radius: 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  /* Audio message */
+  .chat-window .audio-message {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .chat-window .audio-play-button {
+    width: 32px;
+    height: 32px;
+    background: #6F52ED;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .chat-window .audio-waveform {
+    flex-grow: 1;
+    height: 32px;
+  }
+  .chat-window .audio-duration {
+    width: 36px;
+    font-size: 12px;
+    text-align: right;
+    color: #222;
+  }
+  /* Chat input area */
+  .chat-window .chat-input-area {
+    margin-top: 24px;
+    background-color: #F2F0F6;
+    border-radius: 32px;
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .chat-window .chat-input-area input[type="text"] {
+    flex-grow: 1;
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    color: #222;
+    outline-offset: -2px;
+  }
+  .chat-window .chat-input-area button {
+    border: none;
+    background: transparent;
+    font-size: 22px;
+    color: #6F52ED;
+    cursor: pointer;
+    user-select: none;
+  }
+  /* Group Info Panel */
+  .group-info {
+    background-color: #F6F2FF;
+    border-top-left-radius: 24px;
+    padding: 28px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 36px;
+    overflow-y: auto;
+  }
+  .group-info .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .group-info .header h2 {
+    margin: 0;
+    font-weight: 700;
+    font-size: 18px;
+    color: #111;
+  }
+  .group-info .header button {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666;
+    user-select: none;
+  }
+  .group-info .files-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .group-info .files-section h3 {
+    margin: 0 0 8px 0;
+    font-weight: 600;
+    font-size: 16px;
+    color: #111;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .group-info .photos-preview {
+    display: flex;
+    gap: 12px;
+  }
+  .group-info .photos-preview img {
+    width: 72px;
+    height: 72px;
+    border-radius: 16px;
+    object-fit: cover;
+  }
+  .group-info .expandable-item {
+    font-size: 14px;
+    color: #444;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    user-select: none;
+    align-items: center;
+    font-weight: 600;
+  }
+  .group-info .expandable-item .indicator {
+    transition: transform 0.2s ease;
+  }
+  .group-info .expandable-item.open .indicator {
+    transform: rotate(90deg);
+  }
+  .group-info .expandable-content {
+    margin-left: 24px;
+    margin-top: 4px;
+    color: #666;
+    font-size: 13px;
+  }
+  /* Members section */
+  .group-info .members-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .group-info .members-section h3 {
+    font-weight: 700;
+    font-size: 16px;
+    margin: 0 0 12px 0;
+    color: #111;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .group-info .members-section h3 button {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666;
+    user-select: none;
+  }
+  .group-info .members-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .group-info .member-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 14px;
+    color: #222;
+  }
+  .group-info .member-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    object-fit: cover;
+    user-select: none;
+  }
+  .group-info .member-initials {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background-color: #6F52ED;
+    color: white;
+    font-weight: 700;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+  }
+  .group-info .member-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .group-info .member-name {
+    font-weight: 700;
+  }
+  .group-info .member-role {
+    font-size: 12px;
+    color: #999;
+  }
+</style>
+</head>
+<body>
+<div class="app" role="main">
+  <!-- Sidebar -->
+  <nav class="sidebar" aria-label="Primary Navigation">
+    <!-- Logo -->
+    <svg class="logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+      <circle cx="50" cy="50" r="50" fill="#6F52ED" />
+      <path d="M35 30 Q60 20 65 50 T50 70 T35 30 Z" fill="#A892FF" />
+      <circle cx="50" cy="50" r="15" fill="#6F52ED" />
+    </svg>
+    <!-- Menu buttons -->
+    <button type="button" class="active" aria-current="page" aria-label="All chats">
+      <span class="icon" aria-hidden="true">💬</span>
+      <span class="badge" aria-label="43 unread messages">43</span>
+      All chats
+    </button>
+    <button type="button" aria-label="Work chats">
+      <span class="icon" aria-hidden="true">💼</span>
+      <span class="badge" aria-label="4 unread messages">4</span>
+      Work
+    </button>
+    <button type="button" disabled aria-label="Friends (disabled)">
+      <span class="icon" aria-hidden="true" style="opacity:0.3;">👥</span>
+      Friends
+    </button>
+    <button type="button" disabled aria-label="News (disabled)">
+      <span class="icon" aria-hidden="true" style="opacity:0.3;">📰</span>
+      News
+    </button>
+    <button type="button" disabled aria-label="Archive chats (disabled)">
+      <span class="icon" aria-hidden="true" style="opacity:0.3;">🗄️</span>
+      Archive chats
+    </button>
+    <button type="button" disabled aria-label="Profile (disabled)">
+      <span class="icon" aria-hidden="true" style="opacity:0.3;">👤</span>
+      Profile
+    </button>
+    <button type="button" disabled aria-label="Edit (disabled)">
+      <span class="icon" aria-hidden="true" style="opacity:0.3;">✏️</span>
+      Edit
+    </button>
+    <button type="button" disabled aria-label="Log out (disabled)">
+      <span class="icon" aria-hidden="true" style="opacity:0.3;">🚪</span>
+      Log out
+    </button>
+  </nav>
+
+  <!-- Chat List -->
+  <section class="chat-list" aria-label="Chat List">
+    <div class="search-container">
+      <input type="search" placeholder="Search" aria-label="Search conversations" />
+      <span class="search-icon" aria-hidden="true">🔍</span>
+    </div>
+    <!-- Chats -->
+    <article class="chat-item active" tabindex="0" aria-selected="true" aria-label="Design chat, last message by Jessie Rollins 4 minutes ago, 1 unread message">
+      <div class="chat-avatar" aria-hidden="true" style="background-color:#292627;">DC</div>
+      <div class="chat-info">
+        <div class="name">Design chat</div>
+        <div class="message">Jessie Rollins sent...</div>
+      </div>
+      <div class="chat-meta">
+        <time class="chat-time" datetime="PT4M">4m</time>
+        <div class="badge-unread" aria-label="1 unread message">1</div>
+        <div class="pin-icon" aria-label="Pinned" title="Pinned">📌</div>
+      </div>
+    </article>
+
+    <article class="chat-item" tabindex="-1" aria-label="Osman Campos, last message 'You: Hey! We are ready to in...' 20 minutes ago">
+      <div class="chat-avatar" aria-hidden="true">
+        <img src="https://randomuser.me/api/portraits/men/44.jpg" alt="Osman Campos avatar" />
+      </div>
+      <div class="chat-info">
+        <div class="name">Osman Campos</div>
+        <div class="message">You: Hey! We are read...</div>
+      </div>
+      <div class="chat-meta">
+        <time class="chat-time" datetime="PT20M">20m</time>
+        <div class="pin-icon" aria-label="Pinned" title="Pinned">📌</div>
+      </div>
+    </article>
+
+    <article class="chat-item" tabindex="-1" aria-label="Jayden Church, last message 'I prepared some varia...' 1 hour ago">
+      <div class="chat-avatar" aria-hidden="true" style="background-color:#FFFFFF; color:#111;">
+        JC
+      </div>
+      <div class="chat-info">
+        <div class="name">Jayden Church</div>
+        <div class="message">I prepared some varia...</div>
+      </div>
+      <div class="chat-meta">
+        <time class="chat-time" datetime="PT1H">1h</time>
+        <svg width="14" height="12" aria-hidden="true" style="fill:#aaa;"><path d="M4.90386 8.4669l-2.3537-2.3537 1.2727-1.2727 1.081-1.08095 1.6576 1.65762 3.3112-3.31118 1.2727 1.27272z"/></svg>
+      </div>
+    </article>
+
+    <article class="chat-item" tabindex="-1" aria-label="Jacob Mcleod, last message 'And send me the proto...' 10 minutes ago, 3 unread messages">
+      <div class="chat-avatar" aria-hidden="true" style="background-color:#111;">
+        JM
+      </div>
+      <div class="chat-info">
+        <div class="name">Jacob Mcleod</div>
+        <div class="message" style="color:#F25C2A;">And send me the proto...</div>
+      </div>
+      <div class="chat-meta">
+        <time class="chat-time" datetime="PT10M">10m</time>
+        <div class="badge-unread" aria-label="3 unread messages">3</div>
+      </div>
+    </article>
+
+    <article class="chat-item" tabindex="-1" aria-label="Jasmin Lowery, last message 'You: Ok! Let's discuss it on th...' 20 minutes ago">
+      <div class="chat-avatar" aria-hidden="true" style="background-color:#CB4B53;">
+        JL
+      </div>
+      <div class="chat-info">
+        <div class="name">Jasmin Lowery</div>
+        <div class="message" style="color:#CB4B53;">You: Ok! Let's discuss it on th...</div>
+      </div>
+      <div class="chat-meta">
+        <time class="chat-time" datetime="PT20M">20m</time>
+        <svg width="14" height="12" aria-hidden="true" style="fill:#6F52ED;"><path d="M4.90386 8.4669l-2.3537-2.3537 1.2727-1.2727 1.081-1.08095 1.6576 1.65762 3.3112-3.31118 1.2727 1.27272z"/></svg>
+      </div>
+    </article>
+
+    <article class="chat-item" tabindex="-1" aria-label="Zaid Myers, last message 'You: Hey! We are ready to in...' 45 minutes ago">
+      <div class="chat-avatar" aria-hidden="true">
+        <img src="https://randomuser.me/api/portraits/women/65.jpg" alt="Zaid Myers avatar" />
+      </div>
+      <div class="chat-info">
+        <div class="name">Zaid Myers</div>
+        <div class="message" style="color:#CB4B53;">You: Hey! We are ready to in...</div>
+      </div>
+      <div class="chat-meta">
+        <time class="chat-time" datetime="PT45M">45m</time>
+        <svg width="14" height="12" aria-hidden="true" style="fill:#6F52ED;"><path d="M4.90386 8.4669l-2.3537-2.3537 1.2727-1.2727 1.081-1.08095 1.6576 1.65762 3.3112-3.31118 1.2727 1.27272z"/></svg>
+      </div>
+    </article>
+
+    <article class="chat-item" tabindex="-1" aria-label="Anthony Cardanes, last message 'What do you think?' 1 day ago">
+      <div class="chat-avatar" aria-hidden="true">
+        <img src="https://randomuser.me/api/portraits/men/22.jpg" alt="Anthony Cardanes avatar" />
+      </div>
+      <div class="chat-info">
+        <div class="name">Anthony Cardanes</div>
+        <div class="message">What do you think?</div>
+      </div>
+      <div class="chat-meta">
+        <time class="chat-time" datetime="P1D">1d</time>
+        <svg width="14" height="12" aria-hidden="true" style="fill:#aaa;"><path d="M4.90386 8.4669l-2.3537-2.3537 1.2727-1.2727 1.081-1.08095 1.6576 1.65762 3.3112-3.31118 1.2727 1.27272z"/></svg>
+      </div>
+    </article>
+  </section>
+
+  <!-- Chat Window -->
+  <section class="chat-window" aria-label="Chat conversation">
+    <header class="header" role="banner">
+      <div>
+        <h1 class="title">Design chat</h1>
+        <p class="sub-title">23 members, 10 online</p>
+      </div>
+      <div class="actions">
+        <button aria-label="Search messages">🔍</button>
+        <button aria-label="Voice call">📞</button>
+        <button aria-label="More options">⋮</button>
+      </div>
+    </header>
+
+    <div class="messages" role="list" aria-live="polite">
+      <!-- Sample message: Mine -->
+      <article class="message mine" role="listitem" aria-label="Jaden, my congratulations! I will be glad to work with you on a new project. 9:27 AM, 10 views">
+        <div class="message-content">
+          <p>Jaden, my congratulations! I will be glad to work with you on a new project 😉</p>
+          <div class="meta">
+            <span class="icon" aria-hidden="true">👁️</span>
+            <span>10</span>
+            <time class="time" datetime="09:27">09:27</time>
+          </div>
+        </div>
+        <aside class="avatar" aria-hidden="true" style="background-color:#6F52ED;">JR</aside>
+      </article>
+      
+      <!-- Message from Alex Hunt -->
+      <article class="message" role="listitem" aria-label="Alex Hunt message at 09:24 AM with 5 fire reactions, 4 likes and 16 views">
+        <aside class="avatar" aria-hidden="true" style="background-color:#6F52ED;">AH</aside>
+        <div class="message-content">
+          <p><strong>Alex Hunt</strong><br />Our intern @jchurch has successfully completed his probationary period and is now part of our team!</p>
+          <div class="meta">
+            <span class="icon" aria-hidden="true">🔥 5</span>
+            <span class="icon" aria-hidden="true">👍 4</span>
+            <span class="icon" aria-hidden="true">👁️ 16</span>
+            <time class="time" datetime="09:24">09:24</time>
+          </div>
+        </div>
+      </article>
+      <!-- More messages would follow similarly -->
+      
+      <!-- Audio message from Jessie Rollins -->
+      <article class="message" role="listitem" aria-label="Audio message from Jessie Rollins 9:30 AM, 10 views">
+        <aside class="avatar" aria-hidden="true">
+          <img src="https://randomuser.me/api/portraits/men/45.jpg" alt="Jessie Rollins avatar" />
+        </aside>
+        <div class="message-content">
+          <p><strong>Jessie Rollins</strong></p>
+          <div class="audio-message" role="application" aria-label="Audio message length 15 seconds">
+            <button class="audio-play-button" aria-label="Play audio">▶️</button>
+            <canvas class="audio-waveform" width="110" height="20" aria-hidden="true"></canvas>
+            <span class="audio-duration">0:15</span>
+          </div>
+          <div class="meta">
+            <span class="icon" aria-hidden="true">👁️</span>
+            <span>10</span>
+            <time class="time" datetime="09:30">09:30</time>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <form class="chat-input-area" aria-label="Send a message">
+      <button type="button" aria-label="Attach file">📎</button>
+      <input type="text" placeholder="Your message" aria-required="true" />
+      <button type="button" aria-label="Record voice">🎤</button>
+      <button type="submit" aria-label="Send message">📩</button>
+    </form>
+  </section>
+
+  <!-- Group Info Panel -->
+  <aside class="group-info" aria-label="Group information">
+    <div class="header">
+      <h2>Group Info</h2>
+      <button aria-label="Close group info">×</button>
+    </div>
+    <section class="files-section">
+      <h3>Files</h3>
+      <div class="photos-preview" aria-label="Photo previews">
+        <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=80&q=80" alt="City buildings" />
+        <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=80&q=80" alt="Hands reading book" />
+      </div>
+      <div class="expandable-item" tabindex="0" aria-expanded="false" role="button" aria-controls="videos-content" aria-label="Toggle 13 videos details">
+        <span>🎥 13 videos</span> <span class="indicator">▶</span>
+      </div>
+      <div id="videos-content" class="expandable-content" hidden>
+        <!-- Detail content can go here -->
+      </div>
+      <div class="expandable-item" tabindex="0" aria-expanded="false" role="button" aria-controls="files-content" aria-label="Toggle 378 files details">
+        <span>📁 378 files</span> <span class="indicator">▶</span>
+      </div>
+      <div id="files-content" class="expandable-content" hidden></div>
+      <div class="expandable-item" tabindex="0" aria-expanded="false" role="button" aria-controls="audio-content" aria-label="Toggle 21 audio files details">
+        <span>🎵 21 audio files</span> <span class="indicator">▶</span>
+      </div>
+      <div id="audio-content" class="expandable-content" hidden></div>
+      <div class="expandable-item" tabindex="0" aria-expanded="false" role="button" aria-controls="links-content" aria-label="Toggle 45 shared links details">
+        <span>🔗 45 shared links</span> <span class="indicator">▶</span>
+      </div>
+      <div id="links-content" class="expandable-content" hidden></div>
+      <div class="expandable-item" tabindex="0" aria-expanded="false" role="button" aria-controls="voice-content" aria-label="Toggle 2,589 voice messages details">
+        <span>🎙️ 2,589 voice messages</span> <span class="indicator">▶</span>
+      </div>
+      <div id="voice-content" class="expandable-content" hidden></div>
+    </section>
+
+    <section class="members-section">
+      <h3>23 members <button aria-label="Close members list">×</button></h3>
+      <ul class="members-list" role="list">
+        <li class="member-item">
+          <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Tanisha Combs avatar" class="member-avatar" />
+          <div class="member-info">
+            <div class="member-name">Tanisha Combs</div>
+            <div class="member-role">admin</div>
+          </div>
+        </li>
+        <li class="member-item">
+          <div class="member-initials" style="background-color:#6F52ED;">AH</div>
+          <div class="member-info">
+            <div class="member-name">Alex Hunt</div>
+          </div>
+        </li>
+        <li class="member-item">
+          <div class="member-initials" style="background-color:#111;">JL</div>
+          <div class="member-info">
+            <div class="member-name">Jasmin Lowery</div>
+          </div>
+        </li>
+        <li class="member-item">
+          <img src="https://randomuser.me/api/portraits/men/55.jpg" alt="Max Padilla avatar" class="member-avatar" />
+          <div class="member-info">
+            <div class="member-name">Max Padilla</div>
+          </div>
+        </li>
+        <li class="member-item">
+          <img src="https://randomuser.me/api/portraits/men/33.jpg" alt="Jessie Rollins avatar" class="member-avatar" />
+          <div class="member-info">
+            <div class="member-name">Jessie Rollins</div>
+          </div>
+        </li>
+        <li class="member-item">
+          <img src="https://randomuser.me/api/portraits/men/77.jpg" alt="Lukas Mcgowan avatar" class="member-avatar" />
+          <div class="member-info">
+            <div class="member-name">Lukas Mcgowan</div>
+          </div>
+        </li>
+      </ul>
+    </section>
+  </aside>
+</div>
+<script>
+  // JS to toggle expandable items content visibility
+  document.querySelectorAll('.expandable-item').forEach(button => {
+    button.addEventListener('click', () => {
+      const expanded = button.getAttribute('aria-expanded') === 'true';
+      button.setAttribute('aria-expanded', !expanded);
+      const controlsId = button.getAttribute('aria-controls');
+      const content = document.getElementById(controlsId);
+      if(content) {
+        if(expanded) {
+          content.hidden = true;
+        } else {
+          content.hidden = false;
+        }
+      }
+      button.classList.toggle('open');
+    });
+  });
+</script>
+</body>
+</html>
