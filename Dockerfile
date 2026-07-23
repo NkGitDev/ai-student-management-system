@@ -43,5 +43,5 @@ RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 
 EXPOSE 80
 
-# Clean old cache on boot, run migrations & start server
-CMD php artisan config:clear && php artisan cache:clear && php artisan view:clear && php artisan migrate --force && service nginx start && php-fpm -D && tail -f /var/www/storage/logs/laravel.log
+# Create log file, set storage permissions, run Laravel optimization commands, and stream logs
+CMD touch /var/www/storage/logs/laravel.log && chown -R www-data:www-data /var/www/storage && chmod -R 775 /var/www/storage && php artisan config:clear && php artisan cache:clear && php artisan view:clear && php artisan migrate --force && service nginx start && php-fpm -D && tail -f /var/www/storage/logs/laravel.log
