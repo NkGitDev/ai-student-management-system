@@ -1,8 +1,5 @@
-@extends('layouts/app')
+@extends('layouts.app')
 
 @section('content')
-
-        @livewire('student-registration', ['course' => $course])
-
+    <livewire:student-registration :course="$course" />
 @endsection
-
